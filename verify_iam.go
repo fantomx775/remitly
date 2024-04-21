@@ -84,6 +84,28 @@ func checkVersion(data map[string]interface{}) (bool, error) {
 	return true, nil
 }
 
+func checkImproperStatementFields(data map[string]interface{}) (bool, error) {
+	// Define the required fields
+	requiredFields := map[string]bool{
+		"Sid":       false,
+		"Effect":    false,
+		"Principal": false,
+		"Action":    false,
+		"Resource":  false,
+		"Condition": false,
+	}
+
+	for key := range data {
+		if _, ok := requiredFields[key]; ok {
+			requiredFields[key] = true
+		} else {
+			return false, errors.New("unexpected field " + key)
+		}
+	}
+
+	return true, nil
+}
+
 func verifyIAMRolePolicy(data map[string]interface{}) (bool, error) {
 
 	policyDocument, ok := data["PolicyDocument"].(map[string]interface{})
@@ -115,7 +137,11 @@ func verifyIAMRolePolicy(data map[string]interface{}) (bool, error) {
 			return false, errors.New("Statement is not a dictionary")
 		}
 
-		ok, err := checkStatementFields(statementMap)
+		ok, err = checkImproperStatementFields(statementMap)
+		if !ok {
+			return false, err
+		}
+		ok, err = checkStatementFields(statementMap)
 		if !ok {
 			return false, err
 		}

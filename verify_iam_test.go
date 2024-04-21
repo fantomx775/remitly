@@ -617,6 +617,26 @@ func TestVerifyIAMRolePolicy(t *testing.T) {
 			expectedResult: true,
 			expectedError:  "Version field is not a string",
 		},
+		{
+			name: "ForbidenFieldInStatement",
+			data: map[string]interface{}{
+				"PolicyName": "root",
+				"PolicyDocument": map[string]interface{}{
+					"Version": "2012-10-17",
+					"Statement": []interface{}{
+						map[string]interface{}{
+							"Sid":             "IamListAccess1",
+							"Effect":          "Allow",
+							"Action":          []interface{}{"iam:ListRoles", "iam:ListUsers"},
+							"Resource":        "***",
+							"AdditionalField": "smth",
+						},
+					},
+				},
+			},
+			expectedResult: false,
+			expectedError:  "unexpected field AdditionalField",
+		},
 	}
 
 	for _, tc := range testCases {
