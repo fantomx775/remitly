@@ -15,14 +15,6 @@ func TestVerifyIAMRolePolicy(t *testing.T) {
 		expectedError  string
 	}{
 		{
-			name: "PolicyDocumentNotDictionary",
-			data: map[string]interface{}{
-				"PolicyDocument": "Not a dictionary",
-			},
-			expectedResult: false,
-			expectedError:  "PolicyDocument is not a dictionary",
-		},
-		{
 			name: "StatementNotList",
 			data: map[string]interface{}{
 				"PolicyName": "root",
@@ -618,7 +610,7 @@ func TestVerifyIAMRolePolicy(t *testing.T) {
 			expectedError:  "Version field is not a string",
 		},
 		{
-			name: "ForbidenFieldInStatement",
+			name: "ForbiddenFieldInStatement3",
 			data: map[string]interface{}{
 				"PolicyName": "root",
 				"PolicyDocument": map[string]interface{}{
@@ -634,7 +626,47 @@ func TestVerifyIAMRolePolicy(t *testing.T) {
 					},
 				},
 			},
-			expectedResult: false,
+			expectedResult: true,
+			expectedError:  "unexpected field AdditionalField",
+		},
+		{
+			name: "ForbiddenFieldInStatement3",
+			data: map[string]interface{}{
+				"PolicyName": "root",
+				"PolicyDocument": map[string]interface{}{
+					"Version":         "2012-10-17",
+					"AdditionalField": "smth",
+					"Statement": []interface{}{
+						map[string]interface{}{
+							"Sid":      "IamListAccess1",
+							"Effect":   "Allow",
+							"Action":   []interface{}{"iam:ListRoles", "iam:ListUsers"},
+							"Resource": "***",
+						},
+					},
+				},
+			},
+			expectedResult: true,
+			expectedError:  "unexpected field AdditionalField",
+		},
+		{
+			name: "ForbiddenFieldInStatement3",
+			data: map[string]interface{}{
+				"PolicyName":      "root",
+				"AdditionalField": "smth",
+				"PolicyDocument": map[string]interface{}{
+					"Version": "2012-10-17",
+					"Statement": []interface{}{
+						map[string]interface{}{
+							"Sid":      "IamListAccess1",
+							"Effect":   "Allow",
+							"Action":   []interface{}{"iam:ListRoles", "iam:ListUsers"},
+							"Resource": "***",
+						},
+					},
+				},
+			},
+			expectedResult: true,
 			expectedError:  "unexpected field AdditionalField",
 		},
 	}

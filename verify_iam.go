@@ -84,16 +84,7 @@ func checkVersion(data map[string]interface{}) (bool, error) {
 	return true, nil
 }
 
-func checkImproperStatementFields(data map[string]interface{}) (bool, error) {
-	requiredFields := map[string]bool{
-		"Sid":       false,
-		"Effect":    false,
-		"Principal": false,
-		"Action":    false,
-		"Resource":  false,
-		"Condition": false,
-	}
-
+func checkImproperFields(data map[string]interface{}, requiredFields map[string]bool) (bool, error) {
 	for key := range data {
 		if _, ok := requiredFields[key]; ok {
 			requiredFields[key] = true
@@ -106,13 +97,29 @@ func checkImproperStatementFields(data map[string]interface{}) (bool, error) {
 }
 
 func verifyIAMRolePolicy(data map[string]interface{}) (bool, error) {
-
+	requiredFields := map[string]bool{
+		"PolicyName":     false,
+		"PolicyDocument": false,
+	}
+	ok, err := checkImproperFields(data, requiredFields)
+	if !ok {
+		return false, err
+	}
 	policyDocument, ok := data["PolicyDocument"].(map[string]interface{})
+	requiredFields = map[string]bool{
+		"Version":   false,
+		"Statement": false,
+	}
+	ok, err = checkImproperFields(policyDocument, requiredFields)
+	if !ok {
+		return false, err
+	}
+
 	astrix := true
 	if !ok {
 		return false, errors.New("PolicyDocument is not a dictionary")
 	}
-	ok, err := checkPolicyDocumentFields(policyDocument)
+	ok, err = checkPolicyDocumentFields(policyDocument)
 	if !ok {
 		return false, err
 	}
@@ -135,8 +142,15 @@ func verifyIAMRolePolicy(data map[string]interface{}) (bool, error) {
 		if !ok {
 			return false, errors.New("Statement is not a dictionary")
 		}
-
-		ok, err = checkImproperStatementFields(statementMap)
+		requiredFields := map[string]bool{
+			"Sid":       false,
+			"Effect":    false,
+			"Principal": false,
+			"Action":    false,
+			"Resource":  false,
+			"Condition": false,
+		}
+		ok, err = checkImproperFields(statementMap, requiredFields)
 		if !ok {
 			return false, err
 		}
