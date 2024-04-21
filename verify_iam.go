@@ -85,7 +85,6 @@ func checkVersion(data map[string]interface{}) (bool, error) {
 }
 
 func checkImproperStatementFields(data map[string]interface{}) (bool, error) {
-	// Define the required fields
 	requiredFields := map[string]bool{
 		"Sid":       false,
 		"Effect":    false,
