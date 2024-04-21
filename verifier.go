@@ -1,46 +1,47 @@
 package main
 
 import (
-    "errors"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 func verifyIAMRolePolicy(data map[string]interface{}) (bool, error) {
-    policyDocument, ok := data["PolicyDocument"].(map[string]interface{})
-    if !ok {
-        return false, errors.New("PolicyDocument is not a dictionary")
-    }
+	policyDocument, ok := data["PolicyDocument"].(map[string]interface{})
+	astrix := true
+	if !ok {
+		return false, errors.New("PolicyDocument is not a dictionary")
+	}
 
-    statements, ok := policyDocument["Statement"].([]interface{})
-    if !ok {
-        return false, errors.New("Statement field is not a list")
-    }
+	statements, ok := policyDocument["Statement"].([]interface{})
+	if !ok {
+		return false, errors.New("Statement field is not a list")
+	}
 
-    if len(statements) == 0 {
-        return false, errors.New("Statement field is empty")
-    }
+	if len(statements) == 0 {
+		return false, errors.New("Statement field is empty")
+	}
 
-    for _, statement := range statements {
-        statementMap, ok := statement.(map[string]interface{})
-        if !ok {
-            return false, errors.New("Statement is not a dictionary")
-        }
+	for _, statement := range statements {
+		statementMap, ok := statement.(map[string]interface{})
+		if !ok {
+			return false, errors.New("Statement is not a dictionary")
+		}
 
-        resource, ok := statementMap["Resource"].(string)
-        if !ok {
-            return false, errors.New("Resource field is missing or not a string")
-        } else if resource == "*" {
-            return false, nil
-        }
-    }
+		resource, ok := statementMap["Resource"].(string)
+		if !ok {
+			return false, errors.New("Resource field is missing or not a string")
+		} else if resource == "*" {
+			astrix = false
+		}
+	}
 
-    return true, nil
+	return astrix, nil
 }
 
 func readJSONsFromFile(jsonFile string) bool {
-	fileData, err := ioutil.ReadFile(jsonFile)
+	fileData, err := os.ReadFile(jsonFile)
 	if err != nil {
 		fmt.Printf("File '%s' not found.\n", jsonFile)
 		return false
@@ -53,12 +54,12 @@ func readJSONsFromFile(jsonFile string) bool {
 	}
 
 	result, err := verifyIAMRolePolicy(data)
-    if err != nil {
-        fmt.Printf("Error: %s\n", err)
-    } else {
-        return result
-    }
-    return result
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+	} else {
+		return result
+	}
+	return result
 
 }
 
